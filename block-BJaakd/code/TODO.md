@@ -98,7 +98,9 @@ B
 ```js
 function wait(time) {
   return new Promise((res, rej) => {
-    setTimeout(res(`Promise Resolved after ${time} ms`), time);
+    setTimeout(() => {
+      res(`Promise Resolved after ${time} ms`);
+    }, time);
   });
 }
 
@@ -106,7 +108,9 @@ wait(1000);
 
 /*
 OUTPUT:
-Promise {<fulfilled>: 'Promise Resolved after 1000 ms'}
+Promise {<pending>}
+Promise Resolved after 1000 ms
+
 
 BUT if we check the time taken:
 
@@ -142,8 +146,7 @@ Promise.resolve(21)
   .then((val) => val + 10)
   .then((val) => val + 100)
   .then((val) => {
-    val > 100 ? true : false;
-    console.error('Error Message to be caught');
+    val > 100 ? console.error('Error Message to be caught') : false;
   })
   .catch((error) => console.log(error));
 
@@ -167,11 +170,19 @@ Promise {<fulfilled>: undefined}
 Promise.resolve([`A`])
   .then((val) => val.concat(`B`))
   .then((val) => {
-    val.reduce((acc, cv) => {
-      return { 0: 'A', 1: 'B' };
-    }, val);
+    return val.reduce((acc, cv, i) => {
+      acc[i] = cv; //acc is an {} in the beginning , cv is first value of val i.e 'A' , i is the index - 0,1
+      return acc;
+    }, {});
   })
-  .then((objVal) => console.log(objVal));
+  .then((val) => console.log(val));
+
+/*
+OUTPUT:
+
+{0: 'A', 1: 'B'}
+Promise {<fulfilled>: undefined}
+*/
 ```
 
 8. Do the following:
@@ -182,36 +193,35 @@ Promise.resolve([`A`])
 - Chain `.then` on above and return `4` also check the value you get access to by logging
 
 ```js
+// Here we are creating a Promise and then chaining one promise to another.
+
 let first = Promise.resolve(1);
 // first
 // Promise {<fulfilled>: 1}
 
-first.then((val) => {
-  return 2;
-});
-// first
-// Promise {<fulfilled>: 2}
-
 first
   .then((val) => {
+    console.log(val);
     return 2;
   })
   .then((val) => {
-    return 3;
-  });
-// Promise {<fulfilled>: 3}
-
-first
-  .then((val) => {
-    return 2;
-  })
-  .then((val) => {
+    console.log(val);
     return 3;
   })
   .then((val) => {
+    console.log(val);
     return 4;
   });
-// Promise {<fulfilled>: 4}
+
+/*
+OUTPUT:
+
+
+1
+2
+3
+Promise {<fulfilled>: 4}
+  */
 ```
 
 9. Do the following:
@@ -222,33 +232,42 @@ first
 - Use `.then` on `first` and return `4` also check the value you get access to by logging
 
 `````js
-// Without chaining
+// Without chaining i.e reassigning
 
 let first = Promise.resolve(1);
-// first
-// Promise {<fulfilled>: 1}
 
-let first = first.then((val) => {
-  return 2;
+first.then((val) => {
+        console.log(val);
+        return 2;
 });
-// first
-// Promise {<fulfilled>: 2}
 
-let first = first.then((val) => {
+first.then((val) => {
+      console.log(val);
+
   return 3;
 });
-// Promise {<fulfilled>: 3}
 
-let first = first.then((val) => {
-  return 4;
+first.then((val) => {
+    console.log(val);
+return 4;
 });
 
-// Promise {<fulfilled>: 4}
+/*
+OUTPUT:
+
+1
+1
+1
+Promise {<fulfilled>: 4}
+*/
 ```
 
 10. Try to understand the difference between the problem 8 and 9. Write your observation.
 ```
-// DOUBT!
+// 8 -> Chaining. So the "value gets carried over" with each .then()
+/* 9 -> No Chaining. So 'first' is getting called by then parallelly 3 times; each time with a .then() . So the original first's value (i.e 1)
+is what is being drawn from by .then(). Hence "original first's value remains unchanged" during each then();
+*/
 ```
 
 11. Do the following
@@ -259,20 +278,24 @@ let first = first.then((val) => {
 - Use `.then` to log the value
 
 ````js
-Promise.resolve('John').then(val => {return 'Arya'}).then(val => {
+Promise.resolve('John')
+.then(val => {return Promise.resolve('Arya')})
+.then(val => {
     console.log(val);
     return new Promise((res,rej) => {
-        setTimeout(res(`Bran`),2000);
+        setTimeout(() => res(`Bran`),2000);
     });
-}).then(val => console.log(val));
+})
+.then(val => console.log(val));
 
 
 /*
 OUTPUT:
 
 Arya
-Bran
-Promise {<fulfilled>: undefined}
+Promise {<pending>}
+Bran                  // appears After 2000ms
 
+// And After 2000ms -> [[PromiseState]] : "fulfilled"
 */
 `````
