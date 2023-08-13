@@ -9,25 +9,35 @@ let jsonData = fetch(`https://api.spaceflightnewsapi.net/v3/articles?_limit=30`)
 const dropdownBox = document.querySelector('.news-sources');
 const allOptions = document.querySelectorAll('option');
 const newsPage = document.querySelector('.container');
-// let button = document.createElement('button');
+let select = document.querySelector('select');
+let allNews = [];
 
-function createDropDownUI(data) {
-  console.log('Inside createDropDownUI now');
-  let listOfSources = data.map((eachObj) => eachObj.newsSite);
-
-  let listOfUniqueSources = listOfSources.filter((source, index, array) => {
-    return array.indexOf(source) === index;
-  });
-  //   console.log(listOfUniqueSources);
-  allOptions.forEach((option, index) => {
-    option.innerText = listOfUniqueSources[index];
-    // console.log(option.innerText);
-
-    //  Selecting any specific news source will display news
-    //   from that specific source only.
-    // console.log(data);
+function displayOptions(allSources) {
+  allSources.forEach((source) => {
+    let option = document.createElement('option');
+    option.innerText = source;
+    option.value = source;
+    select.append(option);
   });
 }
+
+// function createDropDownUI(data) {
+//   console.log('Inside createDropDownUI now');
+//   let listOfSources = data.map((eachObj) => eachObj.newsSite);
+
+//   let listOfUniqueSources = listOfSources.filter((source, index, array) => {
+//     return array.indexOf(source) === index;
+//   });
+//   //   console.log(listOfUniqueSources);
+//   allOptions.forEach((option, index) => {
+//     option.innerText = listOfUniqueSources[index];
+//     // console.log(option.innerText);
+
+//     //  Selecting any specific news source will display news
+//     //   from that specific source only.
+//     // console.log(data);
+//   });
+// }
 
 /*
 HTML to Recreate:
@@ -57,107 +67,65 @@ Data to take form the Obtained Json Array  of Object:
 */
 
 function createUI(data) {
-  console.log('Inside createUI now');
+  //   console.log(data);
+  newsPage.innerHTML = '';
+  data.forEach((spaceData, index) => {
+    // news set 1
+    let newsSet = document.createElement('div');
+    let img = document.createElement('img');
+    let newsDescription = document.createElement('div');
+    let source = document.createElement('h4');
+    let title = document.createElement('h2');
+    let button = document.createElement('button');
 
-  // ****data,  allSourcesArray, listOfUniqueSources,
-  let listOfSources = data.map((eachObj) => eachObj.newsSite);
+    newsSet.classList.add('news-set', 'group-A', 'flex', 'jce', 'aic'); // Add 'flex-1' for equal space and side-by-side display
+    newsDescription.classList.add('news-description', 'flex-col');
+    source.classList.add('source');
+    title.classList.add('title');
+    button.classList.add('read-more');
 
-  let listOfUniqueSources = listOfSources.filter((source, index, array) => {
-    return array.indexOf(source) === index;
+    //Set Data for news set A
+    img.src = spaceData.imageUrl;
+    img.alt = spaceData.title;
+
+    source.innerText = spaceData.newsSite;
+
+    title.innerText = spaceData.title;
+
+    button.innerText = `Read More`;
+    //  Clicking on read me should take the user to the news url
+    button.addEventListener('click', function () {
+      window.open(spaceData.url, '_blank');
+    });
+
+    // Append data for news set A
+    newsDescription.append(source, title, button);
+    newsSet.append(img, newsDescription);
+    newsPage.append(newsSet);
   });
-  let allSourcesArray = [];
-
-  data.forEach((obj, index) => {
-    //   console.log(obj.newsSite);
-
-    allSourcesArray.push(obj.newsSite);
-    console.log(allSourcesArray);
-  });
-
-  //   console.log(allSourcesArray);
-  //   console.log(listOfUniqueSources);
-
-  // allSourcesArray, listOfUniqueSources
-
-  for (const value of listOfUniqueSources) {
-    if (allSourcesArray.includes(value)) {
-      //   console.log(value);
-      data.forEach((spaceData, index) => {
-        // console.log(spaceData, index);
-
-        // news set 1
-        let newsSet = document.createElement('div');
-        let img = document.createElement('img');
-        let newsDescription = document.createElement('div');
-        let source = document.createElement('h4');
-        let title = document.createElement('h2');
-        let button = document.createElement('button');
-
-        newsSet.classList.add('news-set', 'group-A', 'flex', 'jce', 'aic'); // Add 'flex-1' for equal space and side-by-side display
-        newsDescription.classList.add('news-description', 'flex-col');
-        source.classList.add('source');
-        title.classList.add('title');
-        button.classList.add('read-more');
-
-        //Set Data for news set A
-        img.src = spaceData.imageUrl;
-        img.alt = spaceData.title;
-
-        source.innerText = spaceData.newsSite;
-
-        title.innerText = spaceData.title;
-
-        button.innerText = `Read More`;
-        //  Clicking on read me should take the user to the news url
-        button.addEventListener('click', function () {
-          window.open(spaceData.url, '_blank');
-        });
-
-        // Append data for news set A
-        newsDescription.append(source, title, button);
-        newsSet.append(img, newsDescription);
-        newsPage.append(newsSet);
-      });
-    }
-  }
-
-  //   data.forEach((spaceData, index) => {
-  //     console.log(spaceData, index);
-
-  //     // news set 2
-  //     let newsSetB = document.createElement('div');
-  //     let imgB = document.createElement('img');
-  //     let newsDescriptionB = document.createElement('div');
-  //     let sourceB = document.createElement('h4');
-  //     let titleB = document.createElement('h2');
-  //     let buttonB = document.createElement('button');
-
-  //     newsSetB.classList.add('news-set', 'group-B', 'flex-1'); // Add 'flex-1' for equal space and side-by-side display
-  //     newsDescriptionB.classList.add('news-description', 'flex-col');
-  //     sourceB.classList.add('source');
-  //     titleB.classList.add('title');
-  //     buttonB.classList.add('read-more');
-
-  //     //Set data for news set B
-  //     imgB.src = spaceData.imageUrl;
-  //     imgB.alt = spaceData.title;
-
-  //     sourceB.innerText = spaceData.newsSite;
-
-  //     titleB.innerText = spaceData.title;
-
-  //     buttonB.onclick = spaceData.imageUrl;
-
-  //     // Append data for news set B
-  //     newsDescriptionB.append(sourceB, titleB, buttonB);
-  //     newsSetB.append(imgB, newsDescriptionB);
-
-  //   });
 }
 
-let jsonData = fetch(
-  `https://api.spaceflightnewsapi.net/v3/articles?_limit=30`
-).then((responseObj) => responseObj.json());
+let jsonData = fetch(`https://api.spaceflightnewsapi.net/v3/articles?_limit=30`)
+  .then((responseObj) => responseObj.json())
+  .then((data) => {
+    allNews = data; // Update the allNews Global array with all news. This will us Global access of the news `data` obtained here.
+    createUI(data);
+    let allSources = Array.from(
+      new Set(data.map((eachNews) => eachNews.newsSite))
+    );
+    console.log(allSources);
+    displayOptions(allSources);
+  });
 
-jsonData.then((data) => createDropDownUI(data));
-jsonData.then((data) => createUI(data));
+select.addEventListener('change', (event) => {
+  let source = event.target.value.trim();
+
+  //   i.e when you select the `Select News` option , draw from the default Global News data
+  if (source) {
+    var filteredData = allNews.filter((data) => data.newsSite === source);
+  } else {
+    filteredData = allNews;
+  }
+
+  createUI(filteredData);
+});
