@@ -12,6 +12,14 @@ const newsPage = document.querySelector('.container');
 let select = document.querySelector('select');
 let allNews = [];
 
+let isLoading = false;
+// <div class="donut"></div>
+function handleSpinner(status = frameElement) {
+  if (status) {
+    newsPage.innerHTML = `<div class="spinner"><div class="donut"></div></div>`;
+  }
+}
+
 function displayOptions(allSources) {
   allSources.forEach((source) => {
     let option = document.createElement('option');
@@ -104,45 +112,38 @@ function createUI(data) {
   });
 }
 
-// function createLoader() {
-//   /*
-//     const hourglassContainer = document.querySelector('.hourglass-container');
+function init() {
+  // Here before fetching data show the SPINNER
 
-//     <div class="hourglass-container">
-//       <span class="hourglass">⏳</span>
-//     </div>
-//     */
-//   let hourglassContainer = document.createElement('div');
-//   const hourglass = document.createElement('span');
+  let isLoading = true;
+  handleSpinner();
 
-//   hourglassContainer.classList.add('hourglass-container');
-//   hourglass.classList.add('hourglass');
-//   hourglassContainer.append(hourglass);
+  fetch(`https://api.spaceflightnewsapi.net/v3/articles?_limit=30`)
+    .then((responseObj) => {
+      console.log(responseObj);
 
-//   setTimeout(() => (hourglass.innerHTML = '⏳'), 0);
-// }
-
-let jsonData = fetch(`https://api.spaceflightnewsapi.net/v3/articles?_limit=30`)
-  .then((responseObj) => {
-    console.log(responseObj);
-
-    if (!navigator.onLine) {
-      throw new Error(`Something Went Wrong  ${responseObj.status}`);
-    } else if (!responseObj.ok) {
-      throw new Error(`Something Went Wrong  ${responseObj.status}`);
-    } else {
-      return responseObj.json();
-    }
-  })
-  .then((data) => {
-    allNews = data; // Update the allNews Global array with all news. This will us Global access of the news `data` obtained here.
-    createUI(data);
-    let allSources = Array.from(
-      new Set(data.map((eachNews) => eachNews.newsSite))
-    );
-    console.log(allSources);
-    displayOptions(allSources);
-  });
+      if (!navigator.onLine) {
+        throw new Error(`Something Went Wrong  ${responseObj.status}`);
+      } else if (!responseObj.ok) {
+        throw new Error(`Something Went Wrong  ${responseObj.status}`);
+      } else {
+        return responseObj.json();
+      }
+    })
+    .then((data) => {
+      isLoading = false;
+      handleSpinner();
+      allNews = data; // Update the allNews Global array with all news. This will us Global access of the news `data` obtained here.
+      createUI(data);
+      let allSources = Array.from(
+        new Set(data.map((eachNews) => eachNews.newsSite))
+      );
+      console.log(allSources);
+      displayOptions(allSources);
+    })
+    .catch((error) => console.log(error))
+    .finally(handleSpinner());
+}
 
 select.addEventListener('change', (event) => {
   let source = event.target.value.trim();
@@ -156,3 +157,9 @@ select.addEventListener('change', (event) => {
 
   createUI(filteredData);
 });
+
+if (navigator.onLine) {
+  init();
+} else {
+  // handleErrorMessage() -> A function just to display text error message on conatiner area
+}
