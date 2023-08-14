@@ -15,6 +15,26 @@ let four = new Promise((res, rej) => {
 });
 Promise.all([one, two, three, four]).then((resp) => console.log(resp));
 // Output:  [1, 2, 3, 4]
+
+let times = [1, 2, 3, 4];
+let timesPromises = times.map(
+  (second) =>
+    new Promise((res) => {
+      setTimeout(() => res(Math.random()), second * 1000);
+    })
+);
+
+Promise.all(allPromises).then((each) => console.log(each));
+
+/*
+[Promise, Promise, Promise, Promise]
+0: Promise {<fulfilled>: 0.2117932666287019}
+1: Promise {<fulfilled>: 0.36447301674936616}
+2: Promise {<fulfilled>: 0.8065393739660109}
+3: Promise {<fulfilled>: 0.7836394736870518}
+*/
+
+// (4) [0.5456854763175274, 0.3033436604480073, 0.2306431518498746, 0.9387214812390261]
 ```
 
 - Create a list of 5 Github usernames in an array and using `Promise.all` get access to the data of each user from GitHub API. Log the number of followers of each user.
@@ -61,9 +81,11 @@ arrayOfUserPromises.then((data) =>
 ```js
 let urls = [`https://random.dog/woof.json`, `https://aws.random.cat/meow`];
 
-let fastestUrl = Promise.race(urls.map((eachUrl) => fetch(eachUrl)));
-// > fastestUrl
-// Promise {<fulfilled>: Response}
+let fastestUrl = Promise.race(
+  urls.map((eachUrl) => fetch(eachUrl).then(console.log))
+);
+// It returns only one object which is resolved faster:-
+// Response {type: 'cors', url: 'https://random.dog/woof.json', redirected: false, status: 200, ok: true, …}
 //The Promise with url: "https://random.dog/woof.json" is resolved faster.
 ```
 
