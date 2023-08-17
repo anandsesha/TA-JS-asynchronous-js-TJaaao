@@ -25,29 +25,47 @@ let postData = {
   },
 };
 
-fetch(baseURL)
-  .then((resp) => resp.json())
-  .then((obj) => obj.todos)
-  .then((allTodoObjs) => {
-    // fetch(baseURL + lastTodoID, {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(putData),
-    // });
-    crud('POST', postData);
-    crud('PUT', lastTodoID, putData);
-    fetch(baseURL + '/6438dce92043f50009e0a9ec', {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    get(allTodoObjs);
-    //   put(allTodoObjs);
-  });
+function displayTodos() {
+  return fetch(baseURL)
+    .then((resp) => resp.json())
+    .then((obj) => obj.todos)
+    .then((allTodoObjs) => {
+      // fetch(baseURL + lastTodoID, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(putData),
+      // });
+      // crud('POST', postData);
+      // crud('PUT', lastTodoID, putData);
 
-function handleDelete(list) {
+      get(allTodoObjs);
+      //   put(allTodoObjs);
+    });
+}
+
+function handleDelete(uniqueTodoID) {
   console.log(`Button clicked`);
+  return fetch(baseURL + '/' + uniqueTodoID, {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(displayTodos());
+}
+
+function handleToggle(uniqueTodoID, checkedStatus) {
+  let putData = {
+    todo: {
+      isCompleted: !checkedStatus,
+    },
+  };
+  return fetch(baseURL + '/' + uniqueTodoID, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(putData),
+  }).then(displayTodos());
 }
 
 {
@@ -61,26 +79,52 @@ function handleDelete(list) {
 
 function get(allTodoObjs) {
   console.log(allTodoObjs);
+  todoList.innerHTML = '';
   allTodoObjs.forEach((todoObj) => {
-    // console.log(todoObj);
+    console.log(todoObj);
     let li = document.createElement('li');
     let checkbox = document.createElement('input');
     let todoName = document.createElement('h2');
     let close = document.createElement('button');
 
     checkbox.type = 'checkbox';
+    checkbox.checked = todoObj.isCompleted;
+
+    checkbox.addEventListener('click', () =>
+      handleToggle(todoObj._id, todoObj.isCompleted)
+    );
+    checkbox.setAttribute('data-id', todoObj._id);
     li.classList.add('each-todo', 'flex', 'jcb', 'aic');
     todoName.classList.add('.todo-name');
 
-    checkbox.checkVisibility = todoObj.isCompleted;
     todoName.innerText = todoObj.title;
     close.innerText = '❌';
+    close.setAttribute('data-id', todoObj._id);
 
-    // close.addEventListener('toggle', handleDelete(li));
+    close.addEventListener('click', () => handleDelete(todoObj._id));
 
     li.append(checkbox, todoName, close);
     todoList.append(li);
   });
 }
 
-function put(allTodoObjs) {}
+function addTodo(event) {
+  if (event.keyCode == 13 && event.target.value.trim()) {
+    let data = {
+      todo: {
+        title: event.target.value,
+        isCompleted: false,
+      },
+    };
+    fetch(baseURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    }).then(() => {
+      event.target.value = '';
+      displayTodos();
+    });
+  }
+}
+input.addEventListener('keyup', addTodo);
+displayTodos();
